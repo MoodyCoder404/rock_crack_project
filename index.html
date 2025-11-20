@@ -117,11 +117,11 @@
       position: relative;
       margin-bottom: 1.5rem;
     }
-
+ 
     .upload-btn {
       width: 100%;
       padding: 1.5rem 2rem;
-      background: linear-gradient(to right, #eab308, #facc15);
+      background: linear-gradient(to right, #75ea08, #80fa15);
       color: #000;
       font-weight: 600;
       font-size: 1.125rem;
@@ -137,11 +137,11 @@
       font-family: "Outfit", sans-serif;
     }
 
-    .upload-btn:hover {
+    /* .upload-btn:hover {
       background: linear-gradient(to right, #facc15, #fef3c7);
       transform: scale(1.05);
       box-shadow: 0 20px 25px -5px rgba(234, 179, 8, 0.3);
-    }
+    } */
 
     .upload-btn:active {
       transform: scale(0.98);
@@ -241,10 +241,10 @@
       font-family: "Outfit", sans-serif;
     }
 
-    .analyze-btn:hover:not(:disabled) {
+    /* .analyze-btn:hover:not(:disabled) {
       background: #991b1b;
       transform: scale(1.05);
-    }
+    } */
 
     .analyze-btn:disabled {
       background: rgba(139, 0, 0, 0.4);
@@ -638,16 +638,16 @@
     function handleFileSelect(file) {
       selectedImage = file;
 
-      bucketAnimation.style.display = "block";
-      const particleCount = 6;
-      for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement("div");
-        particle.className = "particle";
-        particle.style.left = `${20 + i * 15}%`;
-        particle.style.top = `-${10 + i * 3}px`;
-        particle.style.animationDelay = `${i * 0.15}s`;
-        bucketAnimation.appendChild(particle);
-      }
+      // bucketAnimation.style.display = "block";
+      // const particleCount = 6;
+      // for (let i = 0; i < particleCount; i++) {
+      //   const particle = document.createElement("div");
+      //   particle.className = "particle";
+      //   particle.style.left = `${20 + i * 15}%`;
+      //   particle.style.top = `-${10 + i * 3}px`;
+      //   particle.style.animationDelay = `${i * 0.15}s`;
+      //   bucketAnimation.appendChild(particle);
+      // }
 
       setTimeout(() => {
         bucketAnimation.style.display = "none";
