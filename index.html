@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Crack & Condition Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-bg: #0f172a;
+      --secondary-bg: #1e293b;
+      --card-bg: rgba(30, 41, 59, 0.5);
+      --accent-gold: #eab308;
+      --accent-red: #dc2626;
+      --text-primary: #ffffff;
+      --text-secondary: #d1d5db;
+      --text-muted: #9ca3af;
+      --border-color: rgba(234, 179, 8, 0.2);
+    }
+
+    body {
+      font-family: "Outfit", sans-serif;
+      background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .background-blur {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .blur-circle {
+      position: absolute;
+      width: 288px;
+      height: 288px;
+      background: rgba(234, 179, 8, 0.05);
+      border-radius: 50%;
+      filter: blur(96px);
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    .blur-circle:first-child {
+      top: 80px;
+      left: 40px;
+    }
+
+    .blur-circle:last-child {
+      bottom: 80px;
+      right: 40px;
+      animation-delay: 4s;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-family: "Poppins", sans-serif;
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.015em;
+      line-height: 1.2;
+    }
+
+    @media (min-width: 768px) {
+      .header h1 {
+        font-size: 3rem;
+      }
+    }
+
+    .header p {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+    }
+
+    .card {
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 1.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .upload-section {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .upload-btn {
+      width: 100%;
+      padding: 1.5rem 2rem;
+      background: linear-gradient(to right, #eab308, #facc15);
+      color: #000;
+      font-weight: 600;
+      font-size: 1.125rem;
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      font-family: "Outfit", sans-serif;
+    }
+
+    .upload-btn:hover {
+      background: linear-gradient(to right, #facc15, #fef3c7);
+      transform: scale(1.05);
+      box-shadow: 0 20px 25px -5px rgba(234, 179, 8, 0.3);
+    }
+
+    .upload-btn:active {
+      transform: scale(0.98);
+    }
+
+    .upload-icon {
+      font-size: 1.875rem;
+    }
+
+    .upload-text {
+      text-align: left;
+    }
+
+    .upload-text-main {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .upload-text-sub {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      font-weight: normal;
+    }
+
+    .bucket-animation {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .bucket {
+      width: 64px;
+      height: 40px;
+      background: #b45309;
+      border: 2px solid #92400e;
+      border-radius: 0 0 0.5rem 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .bucket-handle {
+      position: absolute;
+      top: -8px;
+      left: 4px;
+      right: 4px;
+      height: 32px;
+      border: 2px solid #92400e;
+      border-bottom: none;
+      border-radius: 32px 32px 0 0;
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fcd34d;
+      border-radius: 50%;
+      opacity: 0.75;
+      animation: fall 1.5s ease-in forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(120px);
+        opacity: 0;
+      }
+    }
+
+    .preview-section {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .preview-image {
+      max-width: 20rem;
+      max-height: 16rem;
+      border-radius: 0.5rem;
+      border: 2px solid rgba(234, 179, 8, 0.5);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      object-fit: cover;
+      margin-bottom: 2rem;
+    }
+
+    .analyze-btn {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background: #dc2626;
+      color: white;
+      font-weight: 700;
+      font-size: 1.125rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: "Outfit", sans-serif;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      background: #991b1b;
+      transform: scale(1.05);
+    }
+
+    .analyze-btn:disabled {
+      background: rgba(139, 0, 0, 0.4);
+      cursor: not-allowed;
+    }
+
+    .loading-container {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .spinner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .spinner-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid rgba(220, 38, 38, 0.2);
+      border-radius: 50%;
+    }
+
+    .spinner-ring-animated {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid transparent;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+      margin-top: 1rem;
+    }
+
+    .results-section {
+      margin-top: 2rem;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-item {
+      margin-bottom: 2rem;
+    }
+
+    .result-label {
+      color: var(--text-secondary);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.75rem;
+      font-family: "Poppins", sans-serif;
+    }
+
+    .condition-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .condition-good {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.5);
+      color: #86efac;
+    }
+
+    .condition-fair {
+      background: rgba(217, 119, 6, 0.2);
+      border-color: rgba(217, 119, 6, 0.5);
+      color: #fcd34d;
+    }
+
+    .condition-poor {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: rgba(220, 38, 38, 0.5);
+      color: #fca5a5;
+    }
+
+    .score-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .score-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .progress-bar {
+      flex: 1;
+      max-width: 20rem;
+      height: 8px;
+      background: rgba(55, 65, 81, 1);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--accent-gold), #facc15);
+      transition: width 0.5s ease;
+      border-radius: 9999px;
+    }
+
+    .score-percentage {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .explanation-box {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+
+    .explanation-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    @media (min-width: 640px) {
+      .action-buttons {
+        flex-direction: row;
+      }
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: "Outfit", sans-serif;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-copy {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-copy:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-pdf {
+      background: #9333ea;
+      color: white;
+    }
+
+    .btn-pdf:hover {
+      background: #7e22ce;
+    }
+
+    .btn-reset {
+      background: #4b5563;
+      color: white;
+    }
+
+    .btn-reset:hover {
+      background: #374151;
+    }
+
+    .history-section {
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 1.5rem;
+      backdrop-filter: blur(12px);
+      padding: 2rem;
+    }
+
+    .history-title {
+      font-family: "Poppins", sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .history-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .history-item {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .history-condition {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--accent-gold);
+    }
+
+    .history-score {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-blur">
+    <div class="blur-circle"></div>
+    <div class="blur-circle"></div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>Rock Crack & Condition Detector</h1>
+      <p>Upload rock surface image to detect cracks and assess condition using AI.</p>
+    </div>
+
+    <div class="card">
+      <div class="upload-section">
+        <button class="upload-btn" id="fileUploadBtn">
+          <span class="upload-icon">📁</span>
+          <div class="upload-text">
+            <div class="upload-text-main">Choose File to Upload</div>
+            <div class="upload-text-sub">Select rock surface image (JPG, PNG)</div>
+          </div>
+        </button>
+        <div class="bucket-animation" id="bucketAnimation" style="display: none;">
+          <div class="bucket">
+            <div class="bucket-handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/*">
+
+      <div id="previewSection" class="hidden">
+        <div class="preview-section">
+          <img id="previewImage" class="preview-image" alt="Preview">
+        </div>
+        <button class="analyze-btn" id="analyzeBtn">Analyze Rock</button>
+      </div>
+
+      <div id="loadingState" class="hidden">
+        <div class="loading-container">
+          <div class="spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring-animated"></div>
+          </div>
+          <p class="loading-text">Analyzing rock surface… Detecting cracks and generating engineering insights…</p>
+        </div>
+      </div>
+
+      <div id="resultsSection" class="hidden">
+        <div class="results-section">
+          <div class="result-item">
+            <span class="result-label">Condition:</span>
+            <span class="condition-badge" id="conditionBadge"></span>
+          </div>
+
+          <div class="result-item">
+            <span class="result-label">Crack Score:</span>
+            <div class="score-container">
+              <span class="score-value" id="scoreValue">0.00</span>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+              </div>
+              <span class="score-percentage" id="scorePercentage">0%</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <span class="result-label">AI Explanation:</span>
+            <div class="explanation-box">
+              <p class="explanation-text" id="explanationText"></p>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-copy" id="copyBtn">Copy Report</button>
+            <button class="btn btn-pdf" id="downloadBtn">Download Report</button>
+            <button class="btn btn-reset" id="resetBtn">Analyze Another Image</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="historySection" class="hidden">
+      <div class="history-section">
+        <h2 class="history-title">Recent Analyses</h2>
+        <div class="history-items" id="historyItems"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Developed by Karmendra Patel | IIT (BHU) Mining Engineering</p>
+    </div>
+  </div>
+
+  <script>
+    let selectedImage = null;
+    let previewUrl = "";
+    let currentResult = null;
+    let analysisHistory = [];
+
+    const fileUploadBtn = document.getElementById("fileUploadBtn");
+    const fileInput = document.getElementById("fileInput");
+    const previewSection = document.getElementById("previewSection");
+    const previewImage = document.getElementById("previewImage");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const loadingState = document.getElementById("loadingState");
+    const resultsSection = document.getElementById("resultsSection");
+    const bucketAnimation = document.getElementById("bucketAnimation");
+    const copyBtn = document.getElementById("copyBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const historySection = document.getElementById("historySection");
+    const historyItems = document.getElementById("historyItems");
+
+    fileUploadBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        handleFileSelect(file);
+      }
+    });
+
+    analyzeBtn.addEventListener("click", analyzeRock);
+    copyBtn.addEventListener("click", copyResult);
+    downloadBtn.addEventListener("click", downloadReport);
+    resetBtn.addEventListener("click", resetForm);
+
+    function handleFileSelect(file) {
+      selectedImage = file;
+
+      bucketAnimation.style.display = "block";
+      const particleCount = 6;
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.left = `${20 + i * 15}%`;
+        particle.style.top = `-${10 + i * 3}px`;
+        particle.style.animationDelay = `${i * 0.15}s`;
+        bucketAnimation.appendChild(particle);
+      }
+
+      setTimeout(() => {
+        bucketAnimation.style.display = "none";
+        bucketAnimation.innerHTML = '<div class="bucket"><div class="bucket-handle"></div></div>';
+      }, 1500);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        previewUrl = reader.result;
+        previewImage.src = previewUrl;
+        previewSection.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function analyzeRock() {
+      if (!selectedImage) return;
+
+      loadingState.classList.remove("hidden");
+      resultsSection.classList.add("hidden");
+
+      try {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+
+        const response = await fetch("http://127.0.0.1:5000/analyze", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Analysis failed");
+        }
+
+        const data = await response.json();
+
+        currentResult = {
+          condition: data.condition,
+          crack_score: data.crack_score,
+          explanation: data.explanation,
+          timestamp: new Date(),
+        };
+
+        displayResults(currentResult);
+        updateHistory(currentResult);
+      } catch (error) {
+        console.error("Error analyzing image:", error);
+        alert("Failed to analyze image. Please check the backend connection.");
+      } finally {
+        loadingState.classList.add("hidden");
+      }
+    }
+
+    function displayResults(result) {
+      const conditionLower = result.condition.toLowerCase();
+      let conditionClass = "condition-good";
+      if (conditionLower.includes("moderate")) conditionClass = "condition-fair";
+      if (conditionLower.includes("poor")) conditionClass = "condition-poor";
+
+      const progressWidth = Math.min(result.crack_score, 100);
+
+      const conditionBadge = document.getElementById("conditionBadge");
+      conditionBadge.textContent = result.condition;
+      conditionBadge.className = `condition-badge ${conditionClass}`;
+
+      document.getElementById("scoreValue").textContent = result.crack_score.toFixed(2);
+      document.getElementById("progressFill").style.width = `${progressWidth}%`;
+      document.getElementById("scorePercentage").textContent = `${Math.round(progressWidth)}%`;
+
+      document.getElementById("explanationText").textContent = result.explanation;
+
+      resultsSection.classList.remove("hidden");
+    }
+
+    function updateHistory(result) {
+      analysisHistory.unshift(result);
+      if (analysisHistory.length > 3) {
+        analysisHistory = analysisHistory.slice(0, 3);
+      }
+
+      if (analysisHistory.length > 0) {
+        historySection.classList.remove("hidden");
+        historyItems.innerHTML = analysisHistory
+          .map(
+            (item) => `
+          <div class="history-item">
+            <div class="history-condition">${item.condition}</div>
+            <div class="history-score">Score: ${item.crack_score.toFixed(2)}</div>
+            <div class="history-score">${item.timestamp.toLocaleTimeString()}</div>
+          </div>
+        `
+          )
+          .join("");
+      }
+    }
+
+    function copyResult() {
+      const text = `Rock Analysis Report
+
+Condition: ${currentResult.condition}
+Crack Score: ${currentResult.crack_score.toFixed(2)}
+
+Explanation:
+${currentResult.explanation}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Result copied to clipboard!");
+      });
+    }
+
+    function downloadReport() {
+      const content = `Rock Crack & Condition Detector - Analysis Report
+Generated: ${currentResult.timestamp.toLocaleString()}
+
+================================================================================
+CONDITION: ${currentResult.condition}
+CRACK SCORE: ${currentResult.crack_score.toFixed(2)}/100
+================================================================================
+
+AI EXPLANATION:
+${currentResult.explanation}
+
+================================================================================
+Report generated by Rock Crack Detection System
+Developed by Karmendra Patel | IIT (BHU) Mining Engineering
+================================================================================`;
+
+      const element = document.createElement("a");
+      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(content));
+      element.setAttribute("download", `rock-analysis-${Date.now()}.txt`);
+      element.style.display = "none";
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+    function resetForm() {
+      selectedImage = null;
+      previewUrl = "";
+      currentResult = null;
+
+      previewSection.classList.add("hidden");
+      resultsSection.classList.add("hidden");
+      fileInput.value = "";
+    }
+  </script>
+</body>
+</html>
